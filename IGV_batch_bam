@@ -1,4 +1,5 @@
-1.
+1. #查看哪个样本vcf的pos
+vcf=xxx.vcf
 perl -lane 'if(/SVTYPE=INS/){($LEN)=$F[7]=~m/SVLEN=([^;]+)/;($END)=$F[7]=~m/;END=([^;]+)/;print join("\t",$F[0],$F[1],$F[1],$F[2],"INS",$LEN)}elsif(/SVTYPE=BND/ || /SVTYPE=TRA/){($END)=$F[7]=~m/;END=([^;]+)/;($CHRnum)=$F[4]=~m/chr([0-9A-Z]+)/;$CHR2="chr".$CHRnum;($END2)=$F[4]=~m/:([0-9]+)/;print "$F[0]\t$F[1]\t$F[1]\t$F[2]\tTRA_1\t0\n$CHR2\t$END2\t$END2\t$F[2]\tTRA_2\t0"}else{($TY)=$F[7]=~m/SVTYPE=([^;]+)/;($LEN)=$F[7]=~m/SVLEN=([^;]+)/;($END)=$F[7]=~m/;END=([^;]+)/;print join("\t",$F[0],$F[1],$END,$F[2],$TY,abs($LEN))}' $vcf| \
 perl -lane 'if($F[1]>$F[2]){print join("\t",$F[0],$F[2],$F[1],@F[3..@F])}else{print}' - > ${vcf%.*}.bed
 #chr1	238188375	238188375	pacbio_LCL5_minimap2_cutesv_2013_INS	INS	69
@@ -6,26 +7,27 @@ perl -lane 'if($F[1]>$F[2]){print join("\t",$F[0],$F[2],$F[1],@F[3..@F])}else{pr
 awk '{print $1":"($2-5000)"-"($3+5000),$5,$6}' ${vcf%.*}.bed > ${vcf%.*}_5kb.txt
 #chr1:143207139-143219558 DEL 2419
 
-2.
+2. #查看哪个样本的哪个bam的pos
+sample=D5
 pos=${vcf%.*}_5kb.txt
-cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -b $bam_51 $a > ${a}_${b}_${c}_pb_mini_${sample}.bam;done
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -b $bam_52 $a > ${a}_${b}_${c}_pb_ngm_${sample}.bam;done
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -b $bam_53 $a > ${a}_${b}_${c}_ont_mini_${sample}.bam;done
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -b $bam_54 $a > ${a}_${b}_${c}_ont_ngm_${sample}.bam;done
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_51 $a -O bam -o ${a}_${b}_${c}_pb_mini_${sample}.bam;done
+cat $pos |grep "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_56 $a -O bam -o ${a}_${b}_${c}_pb2_ngm_${sample}.bam;done
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_53 $a -O bam -o ${a}_${b}_${c}_ont_mini_${sample}.bam;done
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_54 $a -O bam -o ${a}_${b}_${c}_ont_ngm_${sample}.bam;done
 
-3.
+3. #将每个SV对应的单个bam合并
 plat=pb
 #plat=ont
 map=mini
 #map=ngm
 
 samtools merge -@ $threads ${plat}_${map}_${sample}_merge.bam *_${plat}_${map}_${sample}.bam
-samtools sort ${plat}_${map}_${sample}_merge.bam -@ 12 -o ${plat}_${map}_${sample}_merge_s.bam
-samtools index -@ $threads ${plat}_${map}_${sample}_merge_s.bam
+#samtools sort ${plat}_${map}_${sample}_merge.bam -@ $threads -o ${plat}_${map}_${sample}_merge_s.bam #原始总bam已排序，此处不用重排
+samtools index -@ $threads ${plat}_${map}_${sample}_merge.bam
 rm ${plat}_${map}_${sample}_merge.bam
 rm *_${sample}.bam
 
-4.
+4. #生成IGV Batch Script
 bed=${vcf%.*}.bed
 awk -v OFS='\t' 'BEGIN{print "snapshotDirectory","D:/"}{print "goto",$1":"($2-1000)"-"($3+1000)"\n""snapshot",$1"_"$2"_"$3"_"$5"_"$6}' \
 <(grep -v "TRA" $bed)> ${bed%.*}_igv.txt
@@ -36,3 +38,7 @@ bedtools igv -i $bed
 snapshotDirectory D:/candidate_somatic_igv_picture #目录必须是英文
 goto chr14:96767981-96770060
 snapshot chr14_96767981_96770060.png
+
+5. #生成bedpe提交Ribbon查看更友好
+SURVIVOR  vcftobed $vcf -1 1000000 ${vcf%.*}.bedpe
+grep "TRA"  ${vcf%.*}.bedpe|cut -f 1-7,11 - > ${vcf%.*}_TRA.bedpe
