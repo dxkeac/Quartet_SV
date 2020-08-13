@@ -9,23 +9,21 @@ awk '{print $1":"($2-5000)"-"($3+5000),$5,$6}' ${vcf%.*}.bed > ${vcf%.*}_5kb.txt
 #chr1:143207139-143219558 DEL 2419
 
 2. #查看哪个样本的哪个bam的pos
-sample=D5
 pos=${vcf%.*}_5kb.txt
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_51 $a -O bam -o ${a}_${b}_${c}_pb_mini_${sample}.bam;done
-cat $pos |grep "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_56 $a -O bam -o ${a}_${b}_${c}_pb2_ngm_${sample}.bam;done
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_53 $a -O bam -o ${a}_${b}_${c}_ont_mini_${sample}.bam;done
-#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_54 $a -O bam -o ${a}_${b}_${c}_ont_ngm_${sample}.bam;done
-
-3. #将每个SV对应的单个bam合并
+sample=D5
 plat=pb
 #plat=ont
 map=mini
 #map=ngm
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_51 $a -O bam -o ${a}_${b}_${c}_${plat}_${map}_${sample}.bam;done
+cat $pos |grep "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_56 $a -O bam -o ${a}_${b}_${c}_${plat}_${map}_${sample}.bam;done
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_53 $a -O bam -o ${a}_${b}_${c}_${plat}_${map}_${sample}.bam;done
+#cat $pos |grep -v "TRA"| while read a b c;do samtools view -@ $threads -hb $bam_54 $a -O bam -o ${a}_${b}_${c}_${plat}_${map}_${sample}.bam;done
 
+3. #将每个SV对应的单个bam合并
 samtools merge -@ $threads ${plat}_${map}_${sample}_merge.bam *_${plat}_${map}_${sample}.bam
 #samtools sort ${plat}_${map}_${sample}_merge.bam -@ $threads -o ${plat}_${map}_${sample}_merge_s.bam #原始总bam已排序，此处不用重排
 samtools index -@ $threads ${plat}_${map}_${sample}_merge.bam
-rm ${plat}_${map}_${sample}_merge.bam
 rm *_${sample}.bam
 
 4. #生成IGV Batch Script
