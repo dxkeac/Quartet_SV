@@ -35,7 +35,7 @@ Option:
 EOF
 }
 
-# ÈôÎÞÖ¸¶¨ÈÎºÎ²ÎÊýÔòÊä³ö°ïÖúÎÄµµ
+# è‹¥æ— æŒ‡å®šä»»ä½•å‚æ•°åˆ™è¾“å‡ºå¸®åŠ©æ–‡æ¡£
 if [ $# = 0 ]
 then
     helpdoc
@@ -88,10 +88,10 @@ min_seq_id=${seq-0}
 k_jaccard=${kmer-9}
 
 echo "${vcf_list%.*}.txt----running"
-#Ê¹ÓÃ±ê×¼¼¯
+#ä½¿ç”¨æ ‡å‡†é›†
 if [ "$per" = "Bench" ] || [ "$per" = "B" ];then
 
-#¿¼ÂÇSV»ùÒòÐÍ
+#è€ƒè™‘SVåŸºå› åž‹
 if [ "$geno" = "T" ] || [ "$geno" = "True" ]
 then
 java -cp $PATH_JASMINE/src Main \
@@ -103,7 +103,7 @@ k_jaccard=${k_jaccard} \
 --ignore_strand --output_genotypes \
 out_file=${vcf_list%.*}.vcf >${vcf_list%.*}.log 2>&1
 
-#¿¼ÂÇSVÀàÐÍ
+#è€ƒè™‘SVç±»åž‹
 if [ "$type" = "" ]
 then
     echo -e "\nThe precision and recall of SV genotyping:\nAll SV type (INS,DEL,DUP,INV and BND)"
@@ -117,7 +117,7 @@ else
 	'BEGIN{Benchmark=0;Query=0;shared=0;geno=0}{match($0,/SUPP_VEC=([0-9]+)/,a);split(a[1],vec,"");Benchmark+=vec[1];Query+=vec[2];if(vec[1]+vec[2]==2){num=2+9;if($num !~ /\.\/\./){shared+=1}{split($10,truth,":");split($num,sample,":")}{if(truth[1]==sample[1]){geno+=1}}}}END{print "Bench_num","Query_num","TP_num","Precision","Recall","F1_score","\n",Benchmark,Query,geno,substr(geno/Query,1,6),substr(geno/Benchmark,1,6),substr(2*(geno/Benchmark)*(geno/Query)/((geno/Benchmark)+(geno/Query)),1,6)}'
 fi
 
-#½ö¿¼ÂÇINSºÍDEL
+#ä»…è€ƒè™‘INSå’ŒDEL
 elif [ "$geno" = "G2" ]
 then
 java -cp $PATH_JASMINE/src Main \
@@ -134,7 +134,7 @@ cat ${vcf_list%.*}.vcf|grep -E "SVTYPE=INS|SVTYPE=DEL"| \
 awk -v OFS="\t" \
 'BEGIN{Benchmark=0;Query=0;shared=0;geno=0}{match($0,/SUPP_VEC=([0-9]+)/,a);split(a[1],vec,"");Benchmark+=vec[1];Query+=vec[2];if(vec[1]+vec[2]==2){num=2+9;if($num !~ /\.\/\./){shared+=1}{split($10,truth,":");split($num,sample,":")}{if(truth[1]==sample[1]){geno+=1}}}}END{print "Bench_num","Query_num","TP_num","Precision","Recall","F1_score","\n",Benchmark,Query,geno,substr(geno/Query,1,6),substr(geno/Benchmark,1,6),substr(2*(geno/Benchmark)*(geno/Query)/((geno/Benchmark)+(geno/Query)),1,6)}'
 
-#²»¿¼ÂÇSV»ùÒòÐÍ
+#ä¸è€ƒè™‘SVåŸºå› åž‹
 else
 java -cp $PATH_JASMINE/src Main \
 file_list=${vcf_list} \
@@ -145,7 +145,7 @@ min_seq_id=${min_seq_id} \
 k_jaccard=${k_jaccard} \
 out_file=${vcf_list%.*}.vcf >${vcf_list%.*}.log 2>&1
 
-##¿¼ÂÇSVÀàÐÍ
+##è€ƒè™‘SVç±»åž‹
 if [ "$type" = "" ]
 then
     echo -e "\nThe precision and recall of SV discovery:\nAll SV type (INS,DEL,DUP,INV and BND)"
@@ -163,10 +163,10 @@ fi
 
 fi
 
-#Ê¹ÓÃ¼ÒÏµ
+#ä½¿ç”¨å®¶ç³»
 elif [ "$per" = "Quartet" ] || [ "$per" = "Q" ];then
 
-#¿¼ÂÇSV»ùÒòÐÍ
+#è€ƒè™‘SVåŸºå› åž‹
 if [ "$geno" = "T" ] || [ "$geno" = "True" ]
 then
 java -cp $PATH_JASMINE/src Main \
@@ -178,7 +178,7 @@ k_jaccard=${k_jaccard} \
 --ignore_strand --output_genotypes \
 out_file=${vcf_list%.*}.vcf >${vcf_list%.*}.log 2>&1
 
-#¿¼ÂÇSVÀàÐÍ
+#è€ƒè™‘SVç±»åž‹
 if [ "$type" = "" ]
 then
     echo -e "\nThe Mendelian concordance rate in quartet:\nAll SV type"
@@ -206,7 +206,7 @@ else
     awk -v OFS="\t" -v Me=$Mendelian -v Qu=$Quartet_union -v Ty=$SV 'BEGIN{print "Quartet_union","Mendelian","MCR","\n",Qu,Me,substr(Me/Qu,1,6)}'
 fi
 
-#²»¿¼ÂÇSV»ùÒòÐÍ
+#ä¸è€ƒè™‘SVåŸºå› åž‹
 else
 java -cp $PATH_JASMINE/src Main \
 file_list=${vcf_list} \
@@ -217,7 +217,7 @@ min_seq_id=${min_seq_id} \
 k_jaccard=${k_jaccard} \
 out_file=${vcf_list%.*}.vcf >${vcf_list%.*}.log 2>&1
 
-##¿¼ÂÇSVÀàÐÍ
+##è€ƒè™‘SVç±»åž‹
 if [ "$type" = "" ]
 then
     echo -e "\nThe reproducibility between monozygotic twins:\nAll SV type (INS,DEL,DUP,INV and BND)"
